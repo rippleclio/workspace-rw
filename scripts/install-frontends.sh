@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo "============================================"
 echo "  Installing frontend npm dependencies"
@@ -15,7 +16,7 @@ install_repo() {
 
   echo "[$step/$total] $repo"
   (
-    cd "$SCRIPT_DIR/$repo"
+    cd "$ROOT_DIR/$repo"
     npm install
   )
   echo

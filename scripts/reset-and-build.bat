@@ -1,6 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 
+for %%F in ("%~dp0..") do set "ROOT_DIR=%%~fF"
+
 echo [0/9] Check Docker daemon...
 docker version >nul 2>&1
 if errorlevel 1 (
@@ -50,7 +52,7 @@ for /f %%v in ('docker volume ls -q') do (
 )
 
 echo [3/9] Build core-platform services...
-pushd core-platform
+pushd "%ROOT_DIR%\core-platform"
 call build-services.bat
 if errorlevel 1 (
   popd
@@ -60,7 +62,7 @@ if errorlevel 1 (
 popd
 
 echo [4/9] Build wabifair-commerce services...
-pushd wabifair-commerce
+pushd "%ROOT_DIR%\wabifair-commerce"
 call build-services.bat
 if errorlevel 1 (
   popd
@@ -70,7 +72,7 @@ if errorlevel 1 (
 popd
 
 echo [5/9] Build rippleclio-content services...
-pushd rippleclio-content
+pushd "%ROOT_DIR%\rippleclio-content"
 call build-services.bat
 if errorlevel 1 (
   popd
@@ -80,7 +82,7 @@ if errorlevel 1 (
 popd
 
 echo [6/9] Run core-platform migrations...
-pushd core-platform
+pushd "%ROOT_DIR%\core-platform"
 call run-migrations.bat
 if errorlevel 1 (
   popd
@@ -90,7 +92,7 @@ if errorlevel 1 (
 popd
 
 echo [7/9] Run wabifair-commerce migrations...
-pushd wabifair-commerce
+pushd "%ROOT_DIR%\wabifair-commerce"
 call run-migrations.bat
 if errorlevel 1 (
   popd
@@ -100,7 +102,7 @@ if errorlevel 1 (
 popd
 
 echo [8/9] Run rippleclio-content migrations...
-pushd rippleclio-content
+pushd "%ROOT_DIR%\rippleclio-content"
 call run-migrations.bat
 if errorlevel 1 (
   popd

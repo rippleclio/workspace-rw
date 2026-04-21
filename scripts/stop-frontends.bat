@@ -26,7 +26,7 @@ for /f "tokens=5" %%p in ('netstat -aon ^| findstr ":5174.*LISTENING"') do (
   taskkill /F /PID %%p >nul 2>&1 && set FOUND=1
 )
 
-REM Also close any remaining cmd windows started by start-frontends.bat
+REM Also close any remaining cmd windows started by scripts\start-frontends.bat
 for %%t in ("wabifair-storefront-web" "wabifair-admin-console" "rippleclio-web" "rippleclio-admin-console") do (
   taskkill /FI "WINDOWTITLE eq %%~t" /F >nul 2>&1
 )

@@ -1,6 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 
+for %%F in ("%~dp0..") do set "ROOT_DIR=%%~fF"
+
 echo ============================================
 echo   Installing frontend npm dependencies
 echo ============================================
@@ -28,7 +30,7 @@ set "TOTAL=%~2"
 set "REPO=%~3"
 
 echo [%STEP%/%TOTAL%] %REPO%
-pushd "%~dp0%REPO%"
+pushd "%ROOT_DIR%\%REPO%"
 if errorlevel 1 (
   echo ERROR: Failed to enter %REPO%
   exit /b 1

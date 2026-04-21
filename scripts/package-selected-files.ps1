@@ -1,5 +1,5 @@
 param(
-    [string]$OutputZipPath = (Join-Path (Join-Path $PSScriptRoot 'documents') 'selected-files.zip'),
+    [string]$OutputZipPath = (Join-Path (Join-Path (Split-Path -Parent $PSScriptRoot) 'documents') 'selected-files.zip'),
     [switch]$SkipMissing
 )
 
@@ -9,32 +9,15 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-$root = $PSScriptRoot
+$root = Split-Path -Parent $PSScriptRoot
 $relativePaths = @(
-    '.claudeignore',
-    '.dockerignore',
-    'AGENTS.md',
-    'CLAUDE.md',
-    'DESIGN.md',
-    'TODOS.md',
-    'reset-and-build.bat',
-    'reset-and-build.sh',
-    'start-frontends.bat',
-    'start-frontends.sh',
-    'stop-frontends.bat',
-    'stop-frontends.sh',
-    'install-frontends.bat',
-    'install-frontends.sh',
     'core-platform\deploy\.env',
     'rippleclio-admin-console\.env',
     'rippleclio-content\deploy\.env',
     'rippleclio-web\.env',
     'wabifair-admin-console\.env',
     'wabifair-commerce\deploy\.env',
-    'wabifair-storefront-web\.env',
-    'package-selected-files.bat',
-    'package-selected-files.ps1',
-    'package-selected-files.sh'
+    'wabifair-storefront-web\.env'
 )
 
 $missing = @()

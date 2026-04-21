@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 echo "[0/9] Check Docker daemon..."
 if ! docker version > /dev/null 2>&1; then
   echo "Docker CLI not found. Please install Docker Desktop first."
@@ -44,22 +47,22 @@ if [ -n "$VOLUMES" ]; then
 fi
 
 echo "[3/9] Build core-platform services..."
-(cd core-platform && bash build-services.sh) || { echo "core-platform build failed."; exit 1; }
+(cd "$ROOT_DIR/core-platform" && bash build-services.sh) || { echo "core-platform build failed."; exit 1; }
 
 echo "[4/9] Build wabifair-commerce services..."
-(cd wabifair-commerce && bash build-services.sh) || { echo "wabifair-commerce build failed."; exit 1; }
+(cd "$ROOT_DIR/wabifair-commerce" && bash build-services.sh) || { echo "wabifair-commerce build failed."; exit 1; }
 
 echo "[5/9] Build rippleclio-content services..."
-(cd rippleclio-content && bash build-services.sh) || { echo "rippleclio-content build failed."; exit 1; }
+(cd "$ROOT_DIR/rippleclio-content" && bash build-services.sh) || { echo "rippleclio-content build failed."; exit 1; }
 
 echo "[6/9] Run core-platform migrations..."
-(cd core-platform && bash run-migrations.sh) || { echo "core-platform migrations failed."; exit 1; }
+(cd "$ROOT_DIR/core-platform" && bash run-migrations.sh) || { echo "core-platform migrations failed."; exit 1; }
 
 echo "[7/9] Run wabifair-commerce migrations..."
-(cd wabifair-commerce && bash run-migrations.sh) || { echo "wabifair-commerce migrations failed."; exit 1; }
+(cd "$ROOT_DIR/wabifair-commerce" && bash run-migrations.sh) || { echo "wabifair-commerce migrations failed."; exit 1; }
 
 echo "[8/9] Run rippleclio-content migrations..."
-(cd rippleclio-content && bash run-migrations.sh) || { echo "rippleclio-content migrations failed."; exit 1; }
+(cd "$ROOT_DIR/rippleclio-content" && bash run-migrations.sh) || { echo "rippleclio-content migrations failed."; exit 1; }
 
 echo "[9/9] Restart application services..."
 docker ps --filter "name=core-platform-auth" --filter "name=core-platform-revenue" --format "{{.Names}}" \

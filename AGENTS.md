@@ -71,14 +71,14 @@
    - 如需升级版本，**必须同步升级所有使用该依赖的仓库**
 
 ## 常用根目录脚本用途
-- `reset-and-build.bat`
+- `scripts/reset-and-build.bat`
   - 用于一键重置并重建本地后端环境
   - 会检查 Docker、停止并删除现有容器、删除卷
   - 会依次构建 `core-platform`、`wabifair-commerce`、`rippleclio-content`
   - 会依次执行对应迁移，并重启相关应用服务
   - 适用于后端 Go 代码、容器构建、数据库迁移变更后的重新部署验证
 
-- `start-frontends.bat`
+- `scripts/start-frontends.bat`
   - 用于一键启动所有前端开发服务器
   - 会启动：
     - `wabifair-storefront-web`（3000）
@@ -87,10 +87,10 @@
     - `rippleclio-admin-console`（5174）
   - 适用于本地联调、浏览器验证、前端改动后的 dev server 启动
 
-- `stop-frontends.bat`
+- `scripts/stop-frontends.bat`
   - 用于一键停止所有前端开发服务器
   - 会清理 3000、3001、5173、5174 端口对应进程
-  - 也会关闭由 `start-frontends.bat` 拉起的命令行窗口
+  - 也会关闭由 `scripts/start-frontends.bat` 拉起的命令行窗口
   - 适用于重启前端环境、端口冲突处理、联调结束后的清理
 
 ## Chrome DevTools MCP 调用流程
@@ -131,3 +131,24 @@
 
 
 For UI/UX audits, redesigns, and polish tasks, use the frontend-design skill in `.claude/skills/frontend-design/`.
+
+## gstack
+
+Use the /browse skill from gstack for all web browsing. Never use mcp__claude-in-chrome__* tools.
+
+Available skills:
+/office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /design-shotgun, /design-html, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /connect-chrome, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /codex, /cso, /autoplan, /careful, /freeze, /guard, /unfreeze, /gstack-upgrade, /learn
+
+If gstack skills aren't working, run `cd .claude/skills/gstack && ./setup` to rebuild.
+
+## Design System
+
+Wabifair 设计系统文档在 `DESIGN.md`。做任何 UI 决策前必须读取该文件。
+
+关键规则：
+- 主题：`data-theme="apple"` 是唯一品牌主题，其余三个（ocean/forest/sunset）为平台级
+- 主交互色：哑光金 `#C4A24E`（accent-400），不用蓝色
+- 页面底色：暖石 `#FAF9F7`（secondary-50），不用纯白
+- Logo 字体：Noto Serif SC 500
+- 所有新 UI 组件遵循 8px 间距体系 + rounded-apple/apple-sm/apple-xs 圆角系统
+- i18n UI 规格（语言切换器、结算税费面板、地区不可用状态）见 DESIGN.md 和 `documents/wabifair/multi-country-expansion-plan.md` § 5.7.6–5.7.11
