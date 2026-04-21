@@ -1,0 +1,50 @@
+# Git history — never needed inside a build container
+**/.git
+**/.gitignore
+**/.gitattributes
+
+# Frontend projects — backend Dockerfiles never need these
+wabifair-storefront-web/
+wabifair-admin-console/
+rippleclio-web/
+rippleclio-admin-console/
+
+# Documentation
+documents/
+
+# Local environment / secrets
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Editor / OS noise
+**/.idea/
+**/.vscode/
+**/*.DS_Store
+**/Thumbs.db
+
+# Cross-repo services not needed by api-gateway (the only Dockerfile using workspace context)
+# api-gateway only needs: wabifair-commerce/{go.mod,go.sum,pkg/} + rippleclio-content/contracts/openapi/
+wabifair-commerce/services/
+wabifair-commerce/db/
+wabifair-commerce/deploy/
+wabifair-commerce/scripts/
+rippleclio-content/services/
+rippleclio-content/db/
+rippleclio-content/deploy/
+rippleclio-content/pkg/
+rippleclio-content/scripts/
+# core-platform non-gateway service sources (gateway's own dir is explicitly COPY'd in Dockerfile)
+core-platform/db/
+core-platform/deploy/
+
+# Go build artifacts and test cache
+**/vendor/
+**/*.exe
+**/bin/
+**/dist/
+
+# Node / frontend artifacts (in case any are present)
+**/node_modules/
+**/.next/
+**/build/

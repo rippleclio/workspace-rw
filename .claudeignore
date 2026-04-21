@@ -1,0 +1,117 @@
+# =============================================================
+# .claudeignore — Claude Code 上下文排除规则
+# 工作目录: D:\workspace（多仓 monorepo 根）
+#
+# 原则：排除对编码任务无价值、体积大、或含敏感信息的内容。
+# 如需临时让 Claude 读取某个被忽略的目录（如查阅 .env 排查问题），
+# 可在 CLAUDE.md 顶部临时注释说明，完成后删除该注释即可。
+# =============================================================
+
+# ── 依赖与包管理器缓存 ──────────────────────────────────────
+node_modules/
+**/node_modules/
+
+# ── 构建产物 ────────────────────────────────────────────────
+dist/
+**/dist/
+build/
+**/build/
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# ── Go 编译产物 ─────────────────────────────────────────────
+# Go 二进制默认输出到服务目录，名称与服务同名
+**/creation-service/creation-service
+**/video-service/video-service
+**/social-service/social-service
+**/honor-service/honor-service
+**/ticket-service/ticket-service
+**/worker-service/worker-service
+**/knowledge-service/knowledge-service
+**/recommendation-service/recommendation-service
+**/agora-service/agora-service
+**/content-review-service/content-review-service
+**/live-service/live-service
+**/value-tag-service/value-tag-service
+# core-platform / wabifair-commerce 编译产物
+**/api-gateway/api-gateway
+**/auth-service/auth-service
+**/revenue-share/revenue-share
+**/content-service/content-service
+# 通用：忽略与目录同名的可执行文件（无扩展名的 Linux 二进制）
+**/*.exe
+**/*.test
+
+# ── 测试覆盖率报告 ──────────────────────────────────────────
+coverage/
+**/coverage/
+*.out
+**/*.out
+
+# ── 环境变量与密钥（敏感） ───────────────────────────────────
+# 注意：如需 Claude 查看具体配置项排查问题，可在 CLAUDE.md 临时说明
+.env
+**/.env
+.env.*
+**/.env.*
+# 保留示例文件（无敏感值，可作参考）
+!.env.example
+!**/.env.example
+
+# ── Docker & 基础设施生成物 ─────────────────────────────────
+**/deploy/data/
+**/deploy/postgres-data/
+**/deploy/redis-data/
+**/deploy/minio-data/
+
+# ── 日志文件 ────────────────────────────────────────────────
+*.log
+**/*.log
+logs/
+**/logs/
+
+# ── gstack 工具运行时文件 ────────────────────────────────────
+# qa-reports 和 browse 日志对编码任务无价值
+**/.gstack/browse-console.log
+**/.gstack/browse-network.log
+**/.gstack/qa-reports/
+
+# ── 媒体 / 大型二进制文件 ───────────────────────────────────
+tmp/
+*.mp4
+*.mov
+*.avi
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg
+*.ico
+# 保留 public/ 下的静态资源引用（通常体积小且有意义）
+!public/
+
+# ── 压缩包 ──────────────────────────────────────────────────
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+
+# ── IDE / 系统文件 ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+**/.idea/
+
+# ── OpenAPI 生成代码（admin-console） ───────────────────────
+# 由 npm run api:types:generate 自动生成，不需要 Claude 直接编辑
+# 如需查阅生成类型作参考，可临时注释此行
+rippleclio-admin-console/src/api/generated/
+
+# ── 文档中的大型附件/归档 ───────────────────────────────────
+documents/selected-files.zip
+documents/**/claude\ code\ 403/
+documents/**/openclaw_飞书部署/
+documents/**/ssh远程连接新加坡服务器/
