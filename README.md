@@ -15,7 +15,7 @@
 
 ## 目录说明
 
-- `scripts/setup.sh` / `scripts/setup.bat`：首次 clone 后执行，安装前端依赖并检查工作区仓库布局。
+- `scripts/setup.sh` / `scripts/setup.bat`：首次拉起工作区时执行，自动 clone 缺失的子仓库。
 - `scripts/reset-and-build.sh` / `scripts/reset-and-build.bat`：一键重置并重建本地后端环境。
 - `scripts/start-frontends.sh` / `scripts/start-frontends.bat`：启动 4 个前端开发服务器。
 - `scripts/stop-frontends.sh` / `scripts/stop-frontends.bat`：停止所有前端开发服务器。
@@ -80,18 +80,20 @@ bash scripts/setup.sh
 scripts\setup.bat
 ```
 
-首次安装完成后再构建后端与启动前端。
+`setup` 默认会从 `https://github.com/rippleclio/<repo>.git` clone 缺失仓库；也可以追加仓库名，只 clone 指定仓库。
 
 首次 clone 的推荐顺序：
 
 ```bash
 bash scripts/setup.sh
+bash scripts/install-frontends.sh
 bash scripts/reset-and-build.sh
 bash scripts/start-frontends.sh
 ```
 
 ```bat
 scripts\setup.bat
+scripts\install-frontends.bat
 scripts\reset-and-build.bat
 scripts\start-frontends.bat
 ```
@@ -99,7 +101,9 @@ scripts\start-frontends.bat
 
 ## 脚本行为
 
-- 默认处理根仓库与 8 个子仓库；传入仓库名参数后只处理指定仓库。
+- `setup` 默认处理 8 个子仓库；传入仓库名参数后只 clone 指定仓库。
+- `setup` 不会安装依赖，也不会覆盖已存在目录；已存在的 Git 仓库会直接跳过。
+- `setup` 支持通过环境变量 `SETUP_REMOTE_BASE` 覆盖默认远端前缀。
 - 如果目录不存在或不是 Git 仓库，会自动跳过。
 - `commit_all.sh` 只会对存在变更的仓库提交；无改动仓库会跳过。
 - `pull_all.sh` 和 `push_all.sh` 只处理工作区干净的仓库，避免把本地未提交改动卷入批量同步。
@@ -134,6 +138,18 @@ bash scripts/install-frontends.sh
 
 ```bat
 scripts\install-frontends.bat
+```
+
+如果只想 clone 指定仓库：
+
+```bash
+bash scripts/setup.sh core-platform wabifair-commerce
+SETUP_REMOTE_BASE=git@github.com:rippleclio bash scripts/setup.sh rippleclio-content
+```
+
+```bat
+scripts\setup.bat core-platform wabifair-commerce
+set SETUP_REMOTE_BASE=git@github.com:rippleclio && scripts\setup.bat rippleclio-content
 ```
 
 如果需要导出当前工作区的关键环境文件：
