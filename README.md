@@ -21,7 +21,7 @@
 - `scripts/stop-frontends.sh` / `scripts/stop-frontends.bat`：停止所有前端开发服务器。
 - `scripts/install-frontends.sh` / `scripts/install-frontends.bat`：安装 4 个前端仓库的 npm 依赖。
 - `scripts/package-selected-files.sh` / `scripts/package-selected-files.bat`：打包关键 `.env` 文件到 `documents/selected-files.zip`。
-- `scripts/commit_all.sh` / `scripts/commit_all.bat`：执行 `git add -A` 并按统一提交信息提交。
+- `scripts/commit_all.sh` / `scripts/commit_all.bat`：执行 `git add -A` 并按统一提交信息提交；不传提交信息时默认使用 `chore: update workspace`。
 - `scripts/pull_all.sh` / `scripts/pull_all.bat`：按当前分支执行安全拉取。
 - `scripts/push_all.sh` / `scripts/push_all.bat`：按当前分支执行推送。
 - `scripts/status_all.sh` / `scripts/status_all.bat`：统一查看根仓库和全部子仓库的当前 Git 状态。
@@ -37,6 +37,7 @@ bash scripts/start-frontends.sh
 bash scripts/stop-frontends.sh
 bash scripts/install-frontends.sh
 bash scripts/package-selected-files.sh
+bash scripts/commit_all.sh
 bash scripts/commit_all.sh "chore: update multiple repos"
 bash scripts/pull_all.sh
 bash scripts/push_all.sh
@@ -50,6 +51,7 @@ scripts\start-frontends.bat
 scripts\stop-frontends.bat
 scripts\install-frontends.bat
 scripts\package-selected-files.bat
+scripts\commit_all.bat
 scripts\commit_all.bat "chore: update multiple repos"
 scripts\pull_all.bat
 scripts\push_all.bat
@@ -105,7 +107,8 @@ scripts\start-frontends.bat
 - `setup` 不会安装依赖，也不会覆盖已存在目录；已存在的 Git 仓库会直接跳过。
 - `setup` 支持通过环境变量 `SETUP_REMOTE_BASE` 覆盖默认远端前缀。
 - 如果目录不存在或不是 Git 仓库，会自动跳过。
-- `commit_all.sh` 只会对存在变更的仓库提交；无改动仓库会跳过。
+- `commit_all.sh` / `commit_all.bat` 只会对存在变更的仓库提交；无改动仓库会跳过。
+- `commit_all.sh` / `commit_all.bat` 不传提交信息时，默认使用 `chore: update workspace`。
 - `pull_all.sh` 和 `push_all.sh` 只处理工作区干净的仓库，避免把本地未提交改动卷入批量同步。
 - `status_all` 会输出每个仓库的 `git status --short --branch` 结果，方便集中查看状态。
 - 遇到 `detached HEAD`、未配置上游分支、分支已分叉等情况时，脚本会输出提示并跳过对应仓库。

@@ -4,10 +4,7 @@ setlocal EnableExtensions EnableDelayedExpansion
 for %%F in ("%~dp0..") do set "ROOT_DIR=%%~fF"
 call :init_repos
 
-if "%~1"=="" (
-  call :usage
-  exit /b 1
-)
+set "DEFAULT_COMMIT_MESSAGE=chore: update workspace"
 
 if /I "%~1"=="-h" (
   call :usage
@@ -19,8 +16,13 @@ if /I "%~1"=="--help" (
   exit /b 0
 )
 
-set "COMMIT_MESSAGE=%~1"
-call :collect_targets %*
+if "%~1"=="" (
+  set "COMMIT_MESSAGE=%DEFAULT_COMMIT_MESSAGE%"
+  call :collect_targets
+) else (
+  set "COMMIT_MESSAGE=%~1"
+  call :collect_targets %*
+)
 call :validate_targets
 if errorlevel 1 exit /b 1
 
@@ -98,7 +100,8 @@ echo Committed repositories: %COMMITTED_REPOS%
 exit /b 0
 
 :usage
-echo Usage: scripts\commit_all.bat "commit message" [repo ...]
+echo Usage: scripts\commit_all.bat ["commit message"] [repo ...]
+echo Default commit message: %DEFAULT_COMMIT_MESSAGE%
 call :print_available_repos
 exit /b 0
 

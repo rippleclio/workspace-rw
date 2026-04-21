@@ -17,6 +17,7 @@ REPOS=(
 )
 
 TARGET_REPOS=()
+DEFAULT_COMMIT_MESSAGE="chore: update workspace"
 
 print_available_repos() {
   echo "Available repositories:"
@@ -26,7 +27,8 @@ print_available_repos() {
 }
 
 usage() {
-  echo "Usage: bash scripts/commit_all.sh \"commit message\" [repo ...]"
+  echo "Usage: bash scripts/commit_all.sh [\"commit message\"] [repo ...]"
+  echo "Default commit message: $DEFAULT_COMMIT_MESSAGE"
   print_available_repos
 }
 
@@ -76,19 +78,20 @@ selected_total() {
   echo "$count"
 }
 
-if [ $# -lt 1 ]; then
-  usage
-  exit 1
-fi
-
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
   usage
   exit 0
 fi
 
-COMMIT_MESSAGE="$1"
-shift
-TARGET_REPOS=("$@")
+if [ $# -lt 1 ]; then
+  COMMIT_MESSAGE="$DEFAULT_COMMIT_MESSAGE"
+  TARGET_REPOS=()
+else
+  COMMIT_MESSAGE="$1"
+  shift
+  TARGET_REPOS=("$@")
+fi
+
 validate_targets "${TARGET_REPOS[@]}"
 
 TOTAL="$(selected_total)"
