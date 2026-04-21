@@ -20,8 +20,6 @@ if /I "%~1"=="--help" (
 )
 
 set "COMMIT_MESSAGE=%~1"
-shift
-
 call :collect_targets %*
 call :validate_targets
 if errorlevel 1 exit /b 1
@@ -135,10 +133,13 @@ exit /b 0
 
 :collect_targets
 set "TARGET_COUNT=0"
-for %%A in (%*) do (
-  set /a TARGET_COUNT+=1
-  call set "TARGET[!TARGET_COUNT!]=%%~A"
-)
+shift
+:collect_targets_loop
+if "%~1"=="" exit /b 0
+set /a TARGET_COUNT+=1
+call set "TARGET[!TARGET_COUNT!]=%~1"
+shift
+goto collect_targets_loop
 exit /b 0
 
 :validate_targets
