@@ -2,13 +2,8 @@
 
 ## 共创模块 (Co-creation Module)
 
-### [高优先级] Vault 锁定后阻止招募新成员
-**What:** Recruit handler 开头检查 vault_locked，若已锁定返回 409。
-**Why:** vault 锁定后分成比例已用于历史结算，新成员的加入会打破结算完整性。
-**Pros:** 零 migration，一行检查。防止财务数据不一致。
-**Cons:** 无。
-**Context:** 本次充刺范围内，与 LockVaultInTx 改动同批次提交。
-**Depends on:** LockVaultInTx vault 验证实现完成后。
+### ~~[高优先级] Vault 锁定后阻止招募新成员~~ ✅ 已完成
+**Status:** Recruit/Apply/Approve/AcceptInvitation 全路径检查 `vault_locked`，返回 409。DB 迁移 0041 已添加字段。
 
 ### [高优先级] linkFailed 手动关联修复入口
 **What:** DetailPage 展示「已发布但未关联共创项目」的视频列表，提供「现在关联」按钮。
@@ -18,21 +13,11 @@
 **Context:** 本次充刺范围内。linkFailed flag 在 uploadStore 中设置，UploadPage 显示 toast，DetailPage 提供永久修复入口。
 **Depends on:** uploadStore linkFailed flag 实现。
 
-### [高优先级] 角色字段应用层校验
-**What:** Recruit handler 和 AcceptInvitation handler 验证 role 字段必须属于枚举列表。
-**Why:** DB 中 role 是 VARCHAR 无约束，任意字符串可写入。分成结算报表中会出现"导演"和"director"两种，数据不一致。
-**Pros:** 零 migration，map lookup 校验。
-**Cons:** 枚举变更需要代码发布（不是 DB migration）。
-**Context:** 枚举值：导演/编剧/摄影/剪辑/配乐/演员/制片/其他（空字符串允许）。
-**Depends on:** 无。
+### ~~[高优先级] 角色字段应用层校验~~ ✅ 已完成
+**Status:** `validateRoles()` + `model.IsValidRole()` 在 creation-service handler 中实现，DB CHECK 约束 0044 同步。`GET /creation/v1/roles` 端点暴露合法角色列表。
 
-### [高优先级] 邀请卡片展示分成比例
-**What:** `GET /project/my-invitations` 响应和前端 InvitationCard 均显示 `share_ratio` 字段（如"你将获得 30% 的视频收益"）。
-**Why:** 接受邀请是财务决策，用户在决策时必须知道自己的分成比例。缺失会导致用户在不知情的情况下接受，后续可能引发纠纷。
-**Pros:** 后端 `creation_members` 已存 share_ratio，只需在 ListMyInvitations 查询中 SELECT 并在前端 InvitationCard 渲染。
-**Cons:** 无额外工作量。
-**Context:** 本次充刺实现 my-invitations 端点时一并处理。接受后跳转到 /creation/:id（accept response 返回 creation_id）。
-**Depends on:** AcceptInvitation/my-invitations 端点实现。
+### ~~[高优先级] 邀请卡片展示分成比例~~ ✅ 已完成
+**Status:** InvitationsPage 已展示 `share_ratio`，当 `share_ratio > 0` 时显示百分比。
 
 ## 商品价值标签模块 (Product Value Tag Module)
 
