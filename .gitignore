@@ -8,3 +8,4 @@
 /wabifair-storefront-web
 .gstack/
 /.tmp-e2e
+.claude/scheduled_tasks.lock
