@@ -70,6 +70,21 @@
    - 如果其他仓库已使用该依赖，**必须使用相同版本**
    - 如需升级版本，**必须同步升级所有使用该依赖的仓库**
 
+7) **wabifair-commerce 双 service 同源代码 Mirror（Repo-mirror）**
+   - `wabifair-commerce/services/admin-service` 和 `wabifair-commerce/services/catalog-service` 各自持有一份 `internal/repository/merchant_repository.go` 和 `internal/model/product.go`。**这两份是同源代码,必须保持同步**
+   - 改动 `GetMerchantProductDetail` / `UpdateMerchantProduct` / `CreateMerchantProduct` SQL 时,**必须同时修改两个 service 的 repo**,否则会出现"merchant 自营路径 ✓ / admin 代管路径 ✗"或反过来的不对称 bug
+   - 改动 `model.ProductDetail` / `model.ProductRow` / `model.ProductSku` 字段时,**必须同时修改两个 service 的 model**
+   - 历史教训:
+     - F-26: Phase 3 后端修复(移除主 tab zh-CN 双写)只改了 catalog-service,admin 代管路径仍然擦 zh-CN 数据,被 E2E 暴露
+     - F-27: Phase 1 i18n 迁移加 brand_story 翻译只改了 catalog-service repo SQL,admin 代管路径主 tab 品牌故事永远空白
+   - 长期目标:把这部分共享逻辑提取到 `pkg/merchantrepo` 或让 admin-service 通过 RPC/HTTP 调 catalog-service,消除重复;短期任何改动按 mirror 原则同步
+
+8) **`decimal.Decimal` 列 nullable 防御（Decimal-NULL-defense）**
+   - `model.ProductSku.Price` 等 `decimal.Decimal`(非指针)字段对应 DB 列允许 NULL 时,SELECT 必须用 `COALESCE(col, 0) AS col`
+   - 不加 COALESCE 的后果:pgx scan plan fallback 到 byte array codec,错误 `can't scan into dest[N]: could not convert value '<nil>' to byte array of type '<nil>'`,且错误位置非常误导(N 是单个 query 内部索引)
+   - 适用范围:任何 `decimal.Decimal`(非 `*decimal.Decimal`)字段对应 nullable 列;`*decimal.Decimal` 类型不需要 COALESCE 因为 Go 端能接 nil
+   - 历史教训:F-25 在这个 trap 上耗了 7 次盲修才找到根因
+
 ## 常用根目录脚本用途
 - `scripts/reset-and-build.bat`
   - 用于一键重置并重建本地后端环境
@@ -126,6 +141,31 @@
 - 修改文件清单（路径）
 - 本地验证命令（test/lint/build/migrate）
 - 风险点与回滚方案（若涉及 DB / 合同 / 权限）
+
+## 调试纪律（Debugging discipline）
+
+诊断 bug 时必须遵循 systematic-debugging 原则,**没有 root cause 就不要 propose fix**。本仓库已发生过多次"盲修反复失败"的事故,以下是必须遵守的纪律:
+
+1) **3 次修复失败必停**
+   - 同一个 bug 尝试 3 次修复仍然失败,**立刻停止**新的修复尝试
+   - 回到 Phase 1 重新 root cause 分析,或者 explicitly 调用 `superpowers:systematic-debugging` skill
+   - 历史教训:F-25 调试时,第 4-7 次尝试(各种 pgx 类型/cast/ExecMode)全部基于错误的 root cause 假设。如果在第 3 次失败时停下,能省 1 小时
+
+2) **错误信息的索引必须与具体 query 绑定**
+   - pgx 错误 `can't scan into dest[N]` 中的 N 是**单个 query 内部的 destination 索引**,不跨 query 累加
+   - repo 函数跑 5 段 SQL 时,每段 SQL 都有自己的 dest[0..k]。错误 dest[3] 可能是任意一段的第 4 个目标
+   - **看到 dest[N] 错误,先问"这是哪段 query 的 dest[N]"**,不要默认是函数顶部第一段 query
+   - 历史教训:F-25 误以为 dest[3] = 主 SELECT 的 CollaborationID *int64 NULL,实际是 SKU SELECT 的 sku.Price decimal.Decimal NULL。7 次盲修都针对错误位置
+
+3) **Bisection 优于理论化**
+   - 当 bug 涉及"为什么 X 失败 Y 不失败"时,先做 cheap experiment 对比两组数据,**不要先猜原因**
+   - F-25 通过创建 fresh product 10002(对照组)+ 删 product_skus 行(精确隔离)在 3 分钟内定位问题。之前 1 小时的纯理论调试一无所获
+   - Cheap experiments:复制有问题的实体到新 ID 看是否复现、二分删除字段/JOIN 逐一确认、`git stash` 比对 main 和当前分支
+
+4) **`go build` / `go test` 通过 ≠ 行为正确**
+   - 编译通过和单元测试通过只能保证语法/接口正确,不能保证数据库交互、跨服务、并发场景的行为正确
+   - 任何涉及 DB / 跨 service / 跨进程的改动,**必须实际跑端到端验证**(reset-and-build + 真实浏览器或 curl 操作),不能只跑 `go test ./...`
+   - 历史教训:F-25/F-26/F-27 都通过 build + 单元测试,但被 E2E 暴露真问题
 
 ## 使用中文进行回复
 
