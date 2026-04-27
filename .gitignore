@@ -9,3 +9,4 @@
 .gstack/
 /.tmp-e2e
 .claude/scheduled_tasks.lock
+/.claude/worktrees
