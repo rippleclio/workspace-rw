@@ -12,3 +12,4 @@
 /.claude/worktrees
 /.worktrees
 .context/codex-session-id
+/.playwright-mcp

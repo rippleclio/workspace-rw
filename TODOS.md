@@ -83,3 +83,47 @@ Deferred items captured during engineering reviews. Each item is ready to pick u
 **Depends on:** US market go/no-go decision (Phase 3 evaluation node per the plan).
 
 **Where to start:** `sys.tax_rules` (no US row currently). Integration point: `order-service` tax calculation, same `sys.tax_rules` lookup pattern, but instead of a local rule, call the SaaS API with buyer address + product category.
+
+
+---
+
+## Shipping Service (CarrierService 全链路)
+
+### [Phase 1 Ops] Pre-flight checklist before Shopify CarrierService registration
+
+**What:** Before running Step 3 (curl POST /carrier_services.json), verify three conditions.
+
+**Why:** Each condition is a silent failure mode: (a) wrong Shopify origin country → every checkout returns empty rates and the integration looks dead; (b) migration not applied in prod → Yanwen DB lookup returns 500; (c) duplicate registration creates two conflicting carrier services in Admin.
+
+**Checklist:**
+1. Shopify Admin → Settings → Locations → confirm primary location country = CN
+2. `SELECT COUNT(*) FROM fallback_rates;` in prod DB → should return ≥ 20 rows (5 countries × 4 bands)
+3. `curl -s /admin/api/2026-01/carrier_services.json | jq '.carrier_services[] | select(.callback_url | contains("yanwen-rates"))'` → if empty, safe to POST; if found, use PUT or skip
+
+**Pros:** Prevents three distinct silent-failure scenarios at registration time.
+
+**Cons:** Extra manual steps before registration. Low cost (~5 minutes).
+
+**Context:** Found during /plan-eng-review outside voice (codex). The non-CN origin risk is particularly acute — the E2E curl test in Step 5 hardcodes origin.country="CN", so it would pass even if real Shopify checkouts send a different origin.
+
+**Depends on:** None.
+
+**Where to start:** Do this in the design doc Step 3 sequence before running the registration curl.
+
+---
+
+### [Phase 2] Add GRANT SELECT ON fallback_rates TO svc_shipping
+
+**What:** A new DB migration granting SELECT on `fallback_rates` to `svc_shipping` role.
+
+**Why:** Migration 000099 only grants to `svc_catalog` (correct for Phase 1). Phase 2 switches the shipping service DB user to `svc_shipping` per the migration comment. Without this grant, every Yanwen rate lookup returns 500 in Phase 2.
+
+**Pros:** Unblocks Phase 2 DB migration without any code change.
+
+**Cons:** None — safe, additive change.
+
+**Context:** `wabifair-commerce/db/migrations/000099_create_fallback_rates.up.sql` comment already anticipates this: "Phase 1 uses svc_catalog; Phase 2 will use svc_shipping".
+
+**Depends on:** Phase 2 kickoff decision, svc_shipping role being created in prod DB.
+
+**Where to start:** New migration file after 000099, e.g. `000100_grant_fallback_rates_to_svc_shipping.up.sql`.
