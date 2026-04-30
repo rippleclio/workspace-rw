@@ -13,3 +13,4 @@
 /.worktrees
 .context/codex-session-id
 /.playwright-mcp
+/.npm-cache
