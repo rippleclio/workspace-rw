@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Skill(plan-eng-review)",
-      "Bash(xargs grep *)",
-      "Skill(qa)"
-    ]
-  }
-}
