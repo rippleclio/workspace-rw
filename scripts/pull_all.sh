@@ -16,6 +16,7 @@ REPOS=(
   "wabifair-storefront-web:wabifair-storefront-web"
 )
 
+TARGET_COUNT="$#"
 TARGET_REPOS=("$@")
 
 print_available_repos() {
@@ -27,13 +28,15 @@ print_available_repos() {
 
 usage() {
   echo "Usage: bash scripts/pull_all.sh [repo ...]"
+  echo "Without repo arguments, all repositories are processed."
+  echo "Only clean work trees with fast-forward updates are pulled."
   print_available_repos
 }
 
 is_selected() {
   local repo_name="$1"
 
-  if [ "${#TARGET_REPOS[@]}" -eq 0 ]; then
+  if [ "$TARGET_COUNT" -eq 0 ]; then
     return 0
   fi
 
@@ -81,10 +84,13 @@ if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
   exit 0
 fi
 
-validate_targets "${TARGET_REPOS[@]}"
+if [ "$TARGET_COUNT" -gt 0 ]; then
+  validate_targets "${TARGET_REPOS[@]}"
+fi
 
 TOTAL="$(selected_total)"
 STEP=0
+FAILED=0
 
 echo "============================================"
 echo "  Pull repositories"
@@ -135,7 +141,12 @@ for entry in "${REPOS[@]}"; do
     continue
   fi
 
-  git -C "$repo_dir" fetch --all --prune --quiet
+  if ! git -C "$repo_dir" fetch --all --prune --quiet; then
+    echo "  Skip: fetch failed"
+    FAILED=1
+    echo
+    continue
+  fi
 
   local_ref="$(git -C "$repo_dir" rev-parse @)"
   upstream_ref="$(git -C "$repo_dir" rev-parse '@{u}')"
@@ -148,7 +159,12 @@ for entry in "${REPOS[@]}"; do
   fi
 
   if [ "$local_ref" = "$base_ref" ]; then
-    git -C "$repo_dir" pull --ff-only
+    if ! git -C "$repo_dir" pull --ff-only; then
+      echo "  Skip: pull failed"
+      FAILED=1
+      echo
+      continue
+    fi
     echo "  Pulled branch: $branch_name"
     echo
     continue
@@ -163,3 +179,9 @@ for entry in "${REPOS[@]}"; do
   echo "  Skip: local and upstream have diverged"
   echo
 done
+
+if [ "$FAILED" -ne 0 ]; then
+  echo "Completed with fetch/pull failures."
+fi
+
+exit "$FAILED"

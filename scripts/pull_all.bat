@@ -20,6 +20,7 @@ if errorlevel 1 exit /b 1
 
 call :count_selected
 set "STEP=0"
+set "FAILED=0"
 
 echo ============================================
 echo   Pull repositories
@@ -68,29 +69,38 @@ for /L %%I in (1,1,%REPO_COUNT%) do (
               echo.
             ) else (
               git -C "!REPO_DIR!" fetch --all --prune --quiet
-              if errorlevel 1 exit /b 1
-
-              set "LOCAL_REF="
-              set "UPSTREAM_REF="
-              set "BASE_REF="
-              for /f "delims=" %%L in ('git -C "!REPO_DIR!" rev-parse @ 2^>nul') do set "LOCAL_REF=%%L"
-              for /f "delims=" %%U in ('git -C "!REPO_DIR!" rev-parse "@{u}" 2^>nul') do set "UPSTREAM_REF=%%U"
-              for /f "delims=" %%M in ('git -C "!REPO_DIR!" merge-base @ "@{u}" 2^>nul') do set "BASE_REF=%%M"
-
-              if "!LOCAL_REF!"=="!UPSTREAM_REF!" (
-                echo   Up to date
-                echo.
-              ) else if "!LOCAL_REF!"=="!BASE_REF!" (
-                git -C "!REPO_DIR!" pull --ff-only
-                if errorlevel 1 exit /b 1
-                echo   Pulled branch: !BRANCH_NAME!
-                echo.
-              ) else if "!UPSTREAM_REF!"=="!BASE_REF!" (
-                echo   Skip: local branch is ahead of upstream
+              if errorlevel 1 (
+                echo   Skip: fetch failed
+                set "FAILED=1"
                 echo.
               ) else (
-                echo   Skip: local and upstream have diverged
-                echo.
+                set "LOCAL_REF="
+                set "UPSTREAM_REF="
+                set "BASE_REF="
+                for /f "delims=" %%L in ('git -C "!REPO_DIR!" rev-parse @ 2^>nul') do set "LOCAL_REF=%%L"
+                for /f "delims=" %%U in ('git -C "!REPO_DIR!" rev-parse "@{u}" 2^>nul') do set "UPSTREAM_REF=%%U"
+                for /f "delims=" %%M in ('git -C "!REPO_DIR!" merge-base @ "@{u}" 2^>nul') do set "BASE_REF=%%M"
+
+                if "!LOCAL_REF!"=="!UPSTREAM_REF!" (
+                  echo   Up to date
+                  echo.
+                ) else if "!LOCAL_REF!"=="!BASE_REF!" (
+                  git -C "!REPO_DIR!" pull --ff-only
+                  if errorlevel 1 (
+                    echo   Skip: pull failed
+                    set "FAILED=1"
+                    echo.
+                  ) else (
+                    echo   Pulled branch: !BRANCH_NAME!
+                    echo.
+                  )
+                ) else if "!UPSTREAM_REF!"=="!BASE_REF!" (
+                  echo   Skip: local branch is ahead of upstream
+                  echo.
+                ) else (
+                  echo   Skip: local and upstream have diverged
+                  echo.
+                )
               )
             )
           )
@@ -100,10 +110,13 @@ for /L %%I in (1,1,%REPO_COUNT%) do (
   )
 )
 
-exit /b 0
+if not "%FAILED%"=="0" echo Completed with fetch/pull failures.
+exit /b %FAILED%
 
 :usage
 echo Usage: scripts\pull_all.bat [repo ...]
+echo Without repo arguments, all repositories are processed.
+echo Only clean work trees with fast-forward updates are pulled.
 call :print_available_repos
 exit /b 0
 
